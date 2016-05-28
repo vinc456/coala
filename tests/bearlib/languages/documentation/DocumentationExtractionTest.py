@@ -43,7 +43,7 @@ class DocumentationExtractionTest(unittest.TestCase):
                  " This is the main function.\n"
                  "\n"
                  " @returns Your favorite number.\n"),
-                language, docstyle,
+                language, docstyle, 0,
                 docstyle_C_doxygen.markers[0],
                 TextRange.from_values(3, 1, 7, 4)),
             DocumentationComment(
@@ -52,7 +52,7 @@ class DocumentationExtractionTest(unittest.TestCase):
                  " - Main item\n"
                  "   - sub item\n"
                  "     - sub sub item\n"),
-                language, docstyle,
+                language, docstyle, 0,
                 docstyle_C_doxygen.markers[2],
                 TextRange.from_values(15, 1, 20, 4)),
             DocumentationComment(
@@ -60,13 +60,13 @@ class DocumentationExtractionTest(unittest.TestCase):
                  "    Another type of comment\n"
                  "\n"
                  "    ..."),
-                language, docstyle,
+                language, docstyle, 0,
                 docstyle_C_doxygen.markers[1],
                 TextRange.from_values(23, 1, 26, 11)),
             DocumentationComment(
                 (" foobar = barfoo.\n"
                  " @param x whatever...\n"),
-                language, docstyle,
+                language, docstyle, 0,
                 docstyle_C_doxygen.markers[0],
                 TextRange.from_values(28, 1, 30, 4)))
 
@@ -85,7 +85,7 @@ class DocumentationExtractionTest(unittest.TestCase):
         self.assertEqual(
             list(extract_documentation(data, language, docstyle)),
             [DocumentationComment(" my main description\n continues here",
-                                  language, docstyle,
+                                  language, docstyle, 0,
                                   docstyle_C_doxygen.markers[0],
                                   TextRange.from_values(1, 1, 2, 21))])
 
@@ -108,23 +108,23 @@ class DocumentationExtractionTest(unittest.TestCase):
                  " This is the main function.\n"
                  " @returns Exit code.\n"
                  "          Or any other number.\n"),
-                language, docstyle,
+                language, docstyle, 0,
                 docstyle_CPP_doxygen.markers[0],
                 TextRange.from_values(4, 1, 8, 4)),
              DocumentationComment(
                 (" foobar\n"
                  " @param xyz\n"),
-                language, docstyle,
+                language, docstyle, 0,
                 docstyle_CPP_doxygen.markers[0],
                 TextRange.from_values(15, 1, 17, 4)),
              DocumentationComment(
                 " Some alternate style of documentation\n",
-                language, docstyle,
+                language, docstyle, 0,
                 docstyle_CPP_doxygen.markers[4],
                 TextRange.from_values(22, 1, 23, 1)),
              DocumentationComment(
                 " ends instantly",
-                language, docstyle,
+                language, docstyle, 4,
                 docstyle_CPP_doxygen.markers[0],
                 TextRange.from_values(26, 5, 26, 26)),
              DocumentationComment(
@@ -133,7 +133,7 @@ class DocumentationExtractionTest(unittest.TestCase):
                  " even without a function standing below.\n"
                  "\n"
                  " @param foo WHAT PARAM PLEASE!?\n"),
-                language, docstyle,
+                language, docstyle, 0,
                 docstyle_CPP_doxygen.markers[4],
                 TextRange.from_values(32, 1, 37, 1))))
 
@@ -150,12 +150,14 @@ class DocumentationExtractionTest(unittest.TestCase):
             (DocumentationComment(
                 ("module comment\n"
                  " hello world\n"),
-                language, docstyle,
+                language, docstyle, 0,
                 docstyle_CPP_doxygen.markers[0],
                 TextRange.from_values(1, 1, 3, 4)),))
 
     def test_extract_documentation_PYTHON3(self):
         data = DocumentationExtractionTest.load_testdata("data.py")
+
+        self.maxDiff = None
 
         language = "python3"
         docstyle_default = "default"
@@ -172,16 +174,21 @@ class DocumentationExtractionTest(unittest.TestCase):
                  "Module description.\n"
                  "\n"
                  "Some more foobar-like text.\n"),
-                language, docstyle_default,
+                language, docstyle_default, 0,
                 docstyle_PYTHON3_default.markers[0],
                 TextRange.from_values(1, 1, 5, 4)),
             DocumentationComment(
                 ("\n"
                  "A nice and neat way of documenting code.\n"
                  ":param radius: The explosion radius.\n"),
-                language, docstyle_default,
+                language, docstyle_default, 4,
                 docstyle_PYTHON3_default.markers[0],
                 TextRange.from_values(8, 5, 11, 8)),
+            DocumentationComment(
+                "\nA function that returns 55.\n",
+                language, docstyle_default, 8,
+                docstyle_PYTHON3_default.markers[0],
+                TextRange.from_values(13, 9, 15, 12)),
             DocumentationComment(
                 ("\n"
                  "Docstring with layouted text.\n"
@@ -189,22 +196,22 @@ class DocumentationExtractionTest(unittest.TestCase):
                  "    layouts inside docs are preserved for these "
                  "documentation styles.\n"
                  "this is intended.\n"),
-                language, docstyle_default,
+                language, docstyle_default, 0,
                 docstyle_PYTHON3_default.markers[0],
-                TextRange.from_values(14, 1, 19, 4)),
+                TextRange.from_values(19, 1, 24, 4)),
             DocumentationComment(
                 (" Docstring directly besides triple quotes.\n"
                  "    Continues here. "),
-                language, docstyle_default,
+                language, docstyle_default, 0,
                 docstyle_PYTHON3_default.markers[0],
-                TextRange.from_values(21, 1, 22, 24)),
+                TextRange.from_values(26, 1, 27, 24)),
             DocumentationComment(
                 ("super\n"
                  " nicely\n"
                  "short"),
-                language, docstyle_default,
+                language, docstyle_default, 0,
                 docstyle_PYTHON3_default.markers[0],
-                TextRange.from_values(35, 1, 37, 9)))
+                TextRange.from_values(40, 1, 42, 9)))
 
         self.assertEqual(
             tuple(extract_documentation(data, language, docstyle_default)),
@@ -214,19 +221,20 @@ class DocumentationExtractionTest(unittest.TestCase):
         expected = list(DocumentationComment(r.documentation,
                                              r.language,
                                              docstyle_doxygen,
+                                             r.indent,
                                              r.marker,
                                              r.range)
                         for r in expected)
 
-        expected.insert(4, DocumentationComment(
+        expected.insert(5, DocumentationComment(
             (" Alternate documentation style in doxygen.\n"
              "  Subtext\n"
              " More subtext (not correctly aligned)\n"
              "      sub-sub-text\n"
              "\n"),
-            language, docstyle_doxygen,
+            language, docstyle_doxygen, 0,
             docstyle_PYTHON3_doxygen.markers[1],
-            TextRange.from_values(25, 1, 30, 1)))
+            TextRange.from_values(30, 1, 35, 1)))
 
         self.assertEqual(
             list(extract_documentation(data, language, docstyle_doxygen)),
@@ -244,7 +252,7 @@ class DocumentationExtractionTest(unittest.TestCase):
         self.assertEqual(
             list(extract_documentation(data, language, docstyle)),
             [DocumentationComment(" documentation in single line  ",
-                                  language, docstyle,
+                                  language, docstyle, 0,
                                   docstyle_PYTHON3_default.markers[0],
                                   TextRange.from_values(2, 1, 2, 38))])
 
@@ -261,6 +269,6 @@ class DocumentationExtractionTest(unittest.TestCase):
             list(extract_documentation(data, language, docstyle)),
             [DocumentationComment(" documentation in single line without "
                                   "return at end.",
-                                  language, docstyle,
+                                  language, docstyle, 0,
                                   docstyle_PYTHON3_doxygen.markers[1],
                                   TextRange.from_values(1, 1, 1, 55))])
