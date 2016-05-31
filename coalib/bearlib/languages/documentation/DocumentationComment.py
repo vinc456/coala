@@ -1,3 +1,4 @@
+
 from collections import namedtuple
 
 from coala_decorators.decorators import generate_eq, generate_repr
@@ -50,6 +51,8 @@ class DocumentationComment:
         """
         if self.language == "python" and self.docstyle == "default":
             return self.parse_python_default()
+        elif self.language == "python" and self.docstyle == "doxygen":
+            return self.parse_python_doxygen()
         else:
             raise NotImplementedError(
                 "Documentation parsing for {0.language!r} in {0.docstyle!r}"
@@ -57,7 +60,7 @@ class DocumentationComment:
 
     def parse_python_default(self):
         """
-        Parse documentation. Usable attributes are:
+        Parse python docstrings. Usable attributes are:
 
         - ``:param``
         - ``:return:``
@@ -68,6 +71,23 @@ class DocumentationComment:
 
         param_identifier = (":param ", ": ")
         return_identifier = ":return:"
+
+        return self._parse_documentation_with_symbols(lines, param_identifier,
+                                                      return_identifier)
+
+    def parse_python_doxygen(self):
+        """
+        Parse python documentation in doxygen style. Usable attributes are:
+
+        - ``@param``
+        - ``@return``
+
+        :return: A list of parsed sections(descriptions, params, return values)
+        """
+        lines = self.documentation.splitlines(keepends=True)
+
+        param_identifier = ("@param ", " ")
+        return_identifier = "@return"
 
         return self._parse_documentation_with_symbols(lines, param_identifier,
                                                       return_identifier)
@@ -93,7 +113,8 @@ class DocumentationComment:
         for line in lines:
             if line.strip().startswith(param_data[0]):
                 parse_mode = self.Parameter
-                splitted = line[len(param_data[0]):].split(param_data[1], 1)
+                param_offset = line.rfind(param_data[0]) + len(param_data[0])
+                splitted = line[param_offset:].split(param_data[1], 1)
                 cur_param = splitted[0].strip()
                 param_desc = ""
                 # For cases where the param description is not on the
