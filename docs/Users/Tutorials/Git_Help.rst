@@ -198,11 +198,14 @@ Now after you have created the Pull Request, there are two possibilities:
 - your PR will be rejected. There are 2 cases when a PR is rejected:
 
       - Test fails
-      - Reviewer wants something changed (This also causes gitmate to fail)
+      - Reviewer wants something changed (This also causes gitmate to fail) 
 
 It's highly unlikely that your PR will be accepted on the first attempt - but
 don't worry that's just how it works. It helps us maintain *coala*
-**clean** and **stable**.
+**clean** and **stable**. We'll try to offer some suggestions for improvement
+and you can try to commit again after making the relevant changes. Sometimes 
+it may take several interations of going back and forth before the changes 
+will be accepted.
 
 .. seealso::
 
